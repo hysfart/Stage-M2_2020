@@ -1,0 +1,162 @@
+\documentclass[oneside,finale,10pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}   
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{mathenv}
+\usepackage{geometry}
+\usepackage{verbatim}[frame=single]
+\usepackage{fullpage}
+\usepackage{listing}
+\usepackage{eso-pic}
+\usepackage{cite}
+\usepackage{cmap}
+\usepackage{caption} 
+\usepackage{lmodern}
+\usepackage{braket}
+\usepackage{multicol}
+\usepackage{titlesec}
+\newenvironment{Figure}
+  {\par\medskip\noindent\minipage{\linewidth}}
+  {\endminipage\par\medskip}
+%\geometry{top=2cm,bottom=2.5cm,left=2cm,right=2cm}
+\title{{\Huge \textbf{Stage de Master 2} }\\ {Supervisé par M. Anglade} \\ \bigskip{\huge {\textbf{Étude de la modélisation DFTB pour l’adapter à des systèmes fortement chargés\\ (Début de rédaction v1.0)}}}} 
+\author{{\Large Paul GUIBOURG}  \\ {\Large Master 2 NAC Physique - UFR Science CAEN} }
+
+\newenvironment{changemargin}[2]{
+\begin{list}{}{% 
+\setlength{\topsep}{0pt}% 
+\setlength{\leftmargin}{0pt}% 
+\setlength{\rightmargin}{0pt}% 
+\setlength{\listparindent}{\parindent}% 
+\setlength{\itemindent}{\parindent}% 
+\setlength{\parsep}{0pt plus 1pt}% 
+\addtolength{\leftmargin}{#1}% 
+\addtolength{\rightmargin}{#2}% 
+}\item }{\end{list}
+}
+
+\titleformat
+{\chapter} % command
+[display] % shape
+{\LARGE\scshape\bfseries} % format
+{Partie \ \thechapter} % label
+{0.2ex} % sep
+{
+    \rule{\textwidth}{0.3pt}
+    \vspace{1ex}
+    \centering
+} % before-code
+[
+\vspace{-0.5ex}%
+\rule{\textwidth}{0.3pt}
+] % after-code
+
+\begin{document}                  
+
+\maketitle
+
+\tableofcontents{}
+\addcontentsline{toc}{chapter}{Préambule}
+
+
+\newpage
+
+\begin{changemargin}{2cm}{2cm}
+
+\section*{Préambule}
+
+
+
+\end{changemargin}
+
+\newpage
+
+
+\chapter{Étude bibliographique}
+
+\section{Introduction}
+
+\hspace*{20px}Dans cette partie, nous allons développer une partie importante d stage qui est de déterminer quelles méthodes employer afin de mettre en œuvre un ajustement de potentiel en DFTB qui répond à nos attentes. 
+
+\section{La méthode de DFT}
+
+\subsection{Une méthode ab-initio}
+
+\hspace*{20px}La Density Functional Theory (DFT) est une méthode de calcul de l'énergie de l'état fondamental d'un système dites \textit{ab-initio}. Cette énergie est représenté comme une  fonctionnel de la densité électronique noté $ \rho $, et va s'exprimer comme :
+\begin{equation*}
+E_0 = E_0^{DFT}[\rho]
+\end{equation*} 
+Cette énergie $ E_0 $ est l'énergie de l'état fondamental du système. On ne considère alors plus, l'énergie pour un ensemble de particules dépendantes les unes des autres, mais pour une densité de charge moyenne définie en tout point de l'espace. 
+\newline
+La méthode de Kohn-Sham décrit l'énergie fonctionnelle de le densité électronique comme étant composée de trois autres fonctionnelle de cette même densité.
+\begin{equation*}
+E[\rho(r)] = T[\rho] + V_{Ne}[\rho] + V_{ee}[\rho]
+\end{equation*}
+$V_{Ne}[\rho]$ va être l'expression de l'énergie du potentiel externe vu par le système. Ce dernier est connu, à l'inverse des deux autres termes. $V_{ee}[\rho]$ et $ T[\rho] $ sont respectivement l’interaction entre électrons et l'énergie cinétique.
+On peut noter la fonctionnelle tel que : $ E[\rho] = F_{HK}[\rho] + \int \rho(\vec{r}) V_{ext}(\vec{r}) \vec{dr} $, où $ F_{HK}[\rho] $ se compose comme la fonctionnelle de l'énergie cinétique, pour un système de particules en interaction. Pour autant, on peut transformer cette fonctionnelle et introduire la fonctionnelle d'échange et de corrélation $ E_{xc}[\rho] $. Celle-ci, sert à corriger les erreurs commises entre la DFT et la réalité.
+On peut définir l'équation de Kohn-Sham qui va redéfinir le problème sous la forme d'une particule virtuelle, plus facile à résoudre, en regroupant la définition des potentiel comme un seul :
+\begin{equation*}
+(T + V_{eff}(\vec{r}))\Psi_i(\vec{r}) = \epsilon_i\Psi_i(\vec{r})
+\end{equation*}
+Ici, $ \ket{\Psi_i(\vec{r})} $ représente la fonction d'onde d'un électron et est appelée orbitale de Khon-Sahm. Le potentiel effectif se compose comme la somme de plusieurs contributions de potentiels tel que le potentiel extérieur appliqué, le potentiel Coulombien et encore le potentiel d'échange et de corrélation.
+
+\subsection{La fonctionnelle d'échange et corrélation}
+
+Plusieurs approximations existe pour estimer le terme d'échange et de corrélation et parmi elles, l'approximation de la densité local (LDA) qui s'exprime comme :
+\begin{equation*}
+E^{LDA}_{XC}[\rho] = \int \rho(\vec{r})\epsilon_{XC}(\rho(\vec{r}))d\vec{r}
+\end{equation*}
+Elle présente plusieurs limitation, mais c'est en LDA que la plupart des calculs suivants vont être fait. Une seconde approximation possible, qui donne de meilleurs résultats va être l'approximation de gradient généralisé (GGA). Elle va considérer en plus des densités, les variations de densités pour le calcul des énergies d'échange-corrélation.
+\begin{equation*}
+E^{GGA}_{XC}[\rho] = \int  \rho(\vec{r})\epsilon_{XC}
+(\rho,\nabla\rho)d\vec{r}
+\end{equation*}
+Dans la suite, on pourra effectuer un comparatif des valeurs trouvées en LDA et GGA, ou encore des fonctionnelles hybrides qui, comme la B3LYP, prendrons en compte dans leur expression une énergie d'échange de Hartree-Fock.
+
+\subsection{Les pseudos-potentiels}
+
+\hspace*{20px}A des fins de calculer les énergies des différents réseaux cristallins qui nous intéresse, nous allons utiliser Abinit. Ce dernier est un logiciel de calcul \textit{ab-initio} à partir de pseudo-potentiel. C'est à dire que l'on distingue dans ces derniers les électrons de cœur, des électrons de valence. Par conséquent, cela réduit le temps de calcul, car on substitue le potentiel coulombien du noyaux et de ces électrons n'ayant pas d'impact significatif dans la liaison par un potentiel effectif agissant sur des pseudo-fonctions d'onde. On ne calcul alors plus les fonctions d'onde des électrons de cœur. Ceux-ci sont des fonctions présentant beaucoup de nœuds et varient rapidement pour satisfaire des conditions d'orthogonalité de la base. Ne pas avoir à les calculer permet donc de gagner beaucoup de temps de calcul.
+\newline
+\newline
+\textbf{\# - IMAGE A CORRIGER}
+\newline
+\newline
+Ici, on voit que l'altérité des pseudo-potentiels se trouve essentiellement proche du noyau, c'est à dire à faible distance du noyaux. On va donc réaliser des calculs à l'aide de cette méthode et d'Abinit.
+Par défaut, Abinit calcul avec des pseudo-potentiels à norme conservée, c'est à dire que les pseudo-fonction de valence sont orthogonales entre elles de manière à ce que les densités de charge générés soient les mêmes [1]. On aura lu la partie de la thèse concernant les pseudo-potentiels à norme conservés.
+
+\section{La méthode de DFTB}
+
+\subsection{L'approximation de Tight-Binding}
+\subsection{La Self-Consistent-Charge DFTB}
+\subsection{La DFTB-3}
+
+\section{Effets correctifs appliqués à la DFTB}
+
+\section{Conclusion}
+
+\chapter{Ajustement d'un potentiels}
+
+\section{Introduction}
+
+\section{Conclusion}
+
+\chapter{Contrainte de champs fort}
+
+\section{Introduction}
+
+\section{Conclusion}
+
+\addcontentsline{toc}{chapter}{Conclusion}
+\chapter*{Conclusion}
+
+
+
+
+\addcontentsline{toc}{chapter}{Bibliographie}
+\bibliography{stage_M2_biblio}
+\bibliographystyle{plain}
+
+
+\end{document}

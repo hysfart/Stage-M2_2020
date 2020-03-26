@@ -1,0 +1,21 @@
+\contentsline {chapter}{Pr\IeC {\'e}ambule}{1}% 
+\contentsline {chapter}{\numberline {1}\IeC {\'E}tude bibliographique}{3}% 
+\contentsline {section}{\numberline {1.1}Introduction}{3}% 
+\contentsline {section}{\numberline {1.2}La m\IeC {\'e}thode de DFT}{3}% 
+\contentsline {subsection}{\numberline {1.2.1}Une m\IeC {\'e}thode ab-initio}{3}% 
+\contentsline {subsection}{\numberline {1.2.2}La fonctionnelle d'\IeC {\'e}change et corr\IeC {\'e}lation}{4}% 
+\contentsline {subsection}{\numberline {1.2.3}Les pseudos-potentiels}{4}% 
+\contentsline {section}{\numberline {1.3}La m\IeC {\'e}thode de DFTB}{4}% 
+\contentsline {subsection}{\numberline {1.3.1}L'approximation de Tight-Binding}{4}% 
+\contentsline {subsection}{\numberline {1.3.2}La Self-Consistent-Charge DFTB}{4}% 
+\contentsline {subsection}{\numberline {1.3.3}La DFTB-3}{4}% 
+\contentsline {section}{\numberline {1.4}Effets correctifs appliqu\IeC {\'e}s \IeC {\`a} la DFTB}{4}% 
+\contentsline {section}{\numberline {1.5}Conclusion}{4}% 
+\contentsline {chapter}{\numberline {2}Ajustement d'un potentiels}{5}% 
+\contentsline {section}{\numberline {2.1}Introduction}{5}% 
+\contentsline {section}{\numberline {2.2}Conclusion}{5}% 
+\contentsline {chapter}{\numberline {3}Contrainte de champs fort}{6}% 
+\contentsline {section}{\numberline {3.1}Introduction}{6}% 
+\contentsline {section}{\numberline {3.2}Conclusion}{6}% 
+\contentsline {chapter}{Conclusion}{6}% 
+\contentsline {chapter}{Bibliographie}{7}% 
