@@ -13,9 +13,13 @@ from ase.calculators.emt import EMT
 from hotbit.parametrization.atom import KSAllElectron
 from hotbit.parametrization.util import IP_EA
 from time import asctime
+from fitting_2 import *
+
+from param_Abinit_maker import *
+
 
 class skf_file:
-        def __init__(self, atom1_='Al', atom2_='Al', rcut_ = 5.0, R_ = 2.0):
+        def __init__(self, atom1_='Al', atom2_='Al', rcut_ = 5.4, R_ = 2.0):
                 """
                 On definit ici les différentes variables qui seront utile pour creer les 
                 potentiels de la DFTB. On pose que :
@@ -54,7 +58,7 @@ class skf_file:
                 # Calculate wave functions for the confined isolated atoms
                 self.atom1 = KSAllElectron(elem1, confinement={'mode':'quadratic', 'r0':r0_1})
                 self.atom1.run()
-                
+                self.atom1.write_unl('Al.elm')
                 self.atom2 = KSAllElectron(elem2, confinement={'mode':'quadratic', 'r0':r0_2})
                 self.atom2.run()
 
@@ -126,13 +130,82 @@ class skf_file:
                 mixer_ = {'name':'Anderson','mixing_constant':0.2, 'memory':5}
                 mixer = mixer_
                 calc0 = Hotbit(txt='-',elements=elm,mixer=mixer,tables=tab,SCC=True)
-                calc1 = Hotbit(txt='-',elements=elm,mixer=mixer,tables=tab,SCC=False,kpts=(6,6,6))
-                calc2 = Hotbit(txt='-',elements=elm,mixer=mixer,tables=tab,SCC=True,charge=-1.0)
-                
-                
+                calc1 = Hotbit(txt='-',elements=elm,mixer=mixer,tables=tab,SCC=True,gamma_cut=2.0)
+                calc2 = Hotbit(txt='-',elements=elm,mixer=mixer,tables=tab,SCC=True,charge=-1)
+                calc3 = Hotbit(txt='-',elements=elm,mixer=mixer,tables=tab,SCC=True,charge=+1) 
+               
+
+                # save : [(-0.7296118704,0.8012224477,-1.1920228795),(0.5749930354,-1.4822803034,-0.2596875043),(0.1546188350,0.6810578558,1.4517103838)]
+                pbc = False
+                pos    = [(-0.7296118704,0.8012224477,-1.1920228795),(0.5749930354,-1.4822803034,-0.2596875043),(0.1546188350,0.6810578558,1.4517103838)]
+                acell  = 50
+                cell   = [( acell, 0, 0),
+                        ( 0, acell, 0), 
+                        ( 0, 0, acell)]
+
+                c3_LDA = abinitio_potential()
+
+                atoms_ = ['Al','Al','Al', pos, cell, pbc]
+                c3_LDA.initial_parameters(atoms_)
+                param = c3_LDA.atoms
+              
                 # Appel de la classe
                 rep = RepulsiveFitting(self.name_2,self.name_2,r_cut=self.rcut)
 
+                from ase import Atoms
+
+                t = Atoms(symbols='Al10',
+                        positions=[(-1.9186181624, -1.2461903716,  2.0949120187),
+                        (1.7189795173,  0.3209741318, -2.7757087630),
+                        (3.4905846244, -0.3068711577, -0.6988022955),
+                        (1.8411920351,  1.9299250914, -0.5489679385),
+                        (2.2864531542,  0.4070430211,  1.7067325251),
+                        (1.4718330447, -2.2539373690,  1.0382629850),
+                        (-2.2450606096,  1.3551110704,  1.1606376673),
+                        (-3.8084873252, -0.6509295625,  0.1149179121),
+                        (-1.1906453574, -0.7975179805, -0.5007932389),
+                        (-2.6462309211,  1.2423931268, -1.5911908723)],
+                        cell=cell)
+
+                # Points pour le cluster Al10
+                rep.append_homogeneous_cluster(weight=0.01,calc=calc1,atoms=t,comment='cluster Al_10 curve',label="cluster Al10")
+                #rep.append_homogeneous_cluster(weight=1,calc=calc2,atoms=t,comment='cluster Al_10 curve',label="cluster Al10 -")
+                #rep.append_homogeneous_cluster(weight=1,calc=calc3,atoms=t,comment='cluster Al_10 curve',label="cluster Al10 +")
+
+
+                # Points pour le trimer de Al
+                #rep.append_homogeneous_cluster(weight=1,calc=calc1,atoms=param,comment='cluster Al_3 curve',label="cluster Al3")
+                #rep.append_homogeneous_cluster(1.0,calc1,'Al-3_LDA.traj',comment='cluster Al_3 curve',label="cluster Al3")
+
+
+                e = 1.0
+                pos    = [(-0.7296118704*e,0.8012224477*e,-1.1920228795*e),(0.5749930354*e,-1.4822803034*e,-0.2596875043*e),(0.1546188350*e,0.6810578558*e,1.4517103838*e)]
+                acell  = 50
+                cell   = [( acell, 0, 0),
+                        ( 0, acell, 0),
+                        ( 0, 0, acell)]
+                q = Atoms('Al3', positions=pos, cell=cell)
+                rep.append_homogeneous_cluster(weight=0.05,calc=calc1,atoms=q,comment='cluster Al_3 curve')
+
+                e = 0.85
+                pos    = [(-0.7296118704*e,0.8012224477*e,-1.1920228795*e),(0.5749930354*e,-1.4822803034*e,-0.2596875043*e),(0.1546188350*e,0.6810578558*e,1.4517103838*e)]
+                q = Atoms('Al3', positions=pos, cell=cell)
+                #rep.append_homogeneous_cluster(weight=0.5,calc=calc1,atoms=q,comment='cluster Al_3 curve')
+
+                e = 0.95
+                pos    = [(-0.7296118704*e,0.8012224477*e,-1.1920228795*e),(0.5749930354*e,-1.4822803034*e,-0.2596875043*e),(0.1546188350*e,0.6810578558*e,1.4517103838*e)]
+                q = Atoms('Al3', positions=pos, cell=cell)
+                #rep.append_homogeneous_cluster(weight=0.5,calc=calc1,atoms=q,comment='cluster Al_3 curve')
+
+
+
+
+                t = Atoms(symbols='Al3',
+                        positions=[(-1.7296118704,1.8012224477,-2.1920228795),(1.5749930354,-2.4822803034,-1.2596875043),(1.1546188350,1.6810578558,2.4517103838)],cell=cell)
+                #rep.append_homogeneous_cluster(weight=0.3,calc=calc1,atoms=t,comment='cluster Al_3 curve',label="cluster Al3")
+                
+                
+                
                 """
                 Ajout de données - Tracés des points
                 -> on decide de tracer les points du potentiel selon : 
@@ -143,14 +216,48 @@ class skf_file:
                    - Chaque calculateur prend des caractéristiques bien spécifique décrit 
                 en fin de programme (copie de la doc) ;
                 """
-
-                # Ces points sont ABSOLUMENT n'importe quoi !!!
-                rep.append_point(weight=1, R=2.9, dvrep=-0.2)
-                rep.append_energy_curve(weight=1.0,calc=calc0,traj='Al2.traj',
-                                        comment='dimer curve')
-                rep.append_scalable_system(weight=1.0,calc=calc1,atoms='Al.traj',
-                                           comment='bulk Al')
+                o = ['FCC', -52.21372200113491, -52.464288211025725, -52.695972314978036, -52.130185729801426, -51.99540489548358,
+                        'CC', -52.262294090116185, -52.13562106779265, -51.921780044220846, -52.40378588439806, -52.52957128932968, -51.574129460197526]
+                l = ['FCC', 3.985, 3.7, 3.5, 4.1, 4.3, 'CC', 3.13, 3.25, 3.5, 3.0, 2.9]
                 
+                # Les points de FCC
+                rep.append_point(weight=0.7, R=2.863, dvrep=(o[1]+16.5017),label="FCC")
+                rep.append_point(weight=0.7, R=3.985, dvrep=(o[1]+16.5017)/12,label="FCC")
+                #rep.append_point(weight=0.99, R=3.985*np.sqrt(2), dvrep=(o[1]+16.5017)/18,label="FCC")
+                
+                #rep.append_point(weight=1, R=l[2]/2, dvrep=(o[2]+16.6177)/12)
+                #rep.append_point(weight=1, R=l[3]/2, dvrep=(o[3]+16.7734)/12)
+                #rep.append_point(weight=1, R=l[4]/2, dvrep=(o[4]+16.4747)/12)
+                #rep.append_point(weight=1, R=l[5]/2, dvrep=(o[5]+16.4474)/12)
+                
+
+                # Points suplémentaire AU FCC bulk
+                """
+                d = ['FCC', -52.21372200113491, -52.695972314978036, -53.58063130613739, -52.02871140432845, -54.692280873780156, -55.31389106044733, -54.139118607676934, 'CC']
+                g = ['FCC', 3.985, 3.5, 3.0, 4.25, 2.5, 2.25, 2.75, 'CC']
+                rep.append_point(weight=1, R=g[1]/1, dvrep=(d[1]+16.5017)/12)
+                rep.append_point(weight=1, R=g[2]/1, dvrep=(d[2]+16.7734)/12)
+                rep.append_point(weight=1, R=g[3]/1, dvrep=(d[3]+17.1653)/12)
+                rep.append_point(weight=1, R=g[5]/1, dvrep=(d[5]+19.3642)/12)
+                rep.append_point(weight=1, R=g[6]/1, dvrep=(d[6]+20.6727)/12)
+                rep.append_point(weight=1, R=g[7]/1, dvrep=(d[7]+18.4393)/12)
+                """
+
+                # Les points CC
+                rep.append_point(weight=0.7, R=2.802, dvrep=(o[7]+16.5195),label="CC")
+                rep.append_point(weight=0.7, R=3.185, dvrep=(o[7]+16.5195)/8,label="CC")
+                rep.append_point(weight=0.7, R=3.185*np.sqrt(2), dvrep=(o[7]+16.5195)/14,label="CC")
+
+
+                # Courbe pour le dimer Al2
+                rep.append_energy_curve(weight=0.1,calc=calc0,traj='Al2.traj',comment='dimer curve',label="Dimere Al2")
+
+
+                rep.append_dimer(weight=0.1,calc=calc2,R=2.0,comment='dimer curve',label="Dimere Al2-")                
+                
+                #rep.append_dimer(weight=1.0,calc=calc3,R=2.0,comment='dimer curve',label="Dimere Al2+")
+                
+                print(rep.deriv) 
                 # Réalisation du fit et de l'output
                 rep.fit()
                 rep.write_par(self.title_no_rep,
@@ -272,7 +379,7 @@ class skf_file:
         Fonction d'appel de la class
         """
         def __call__(self):
-                self.creatTable()
+                #self.creatTable()
                 self.creatRepulsivePotential()
 
 
